@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto-évaluation — L'expérience fait la valeur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #1D9E75;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --amber: #BA7517;
+      --blue: #185FA5;
+      --gray-50: #F7F7F5;
+      --gray-100: #EFEFEB;
+      --gray-200: #D8D8D2;
+      --gray-400: #9A9A92;
+      --gray-700: #3D3D38;
+      --gray-900: #1A1A18;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid var(--gray-100);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--teal);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-mark svg {
+      width: 18px;
+      height: 18px;
+      stroke: white;
+      fill: none;
+    }
+
+    .header-text h1 { font-size: 15px; font-weight: 600; color: var(--gray-900); line-height: 1.2; }
+    .header-text p { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 0;
+    }
+
+    #messages {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 1rem;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 82%;
+      animation: fadeUp 0.2s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.ai { align-self: flex-start; }
+    .msg.user { align-self: flex-end; }
+
+    .msg-label {
+      font-size: 11px;
+      color: var(--gray-400);
+      padding: 0 4px;
+      font-weight: 500;
+    }
+
+    .msg.user .msg-label { text-align: right; }
+
+    .bubble {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .msg.ai .bubble {
+      background: white;
+      color: var(--gray-900);
+      border: 1px solid var(--gray-100);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.user .bubble {
+      background: var(--teal);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    #typing {
+      display: none;
+      align-self: flex-start;
+      background: white;
+      border: 1px solid var(--gray-100);
+      border-radius: var(--radius);
+      border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .dot {
+      width: 6px; height: 6px;
+      background: var(--gray-200);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+      display: inline-block;
+      margin: 0 1px;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .input-wrapper {
+      position: sticky;
+      bottom: 0;
+      background: var(--gray-50);
+      padding: 1rem 0 1.25rem;
+    }
+
+    .input-box {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 8px 8px 8px 16px;
+      transition: border-color 0.15s;
+    }
+
+    .input-box:focus-within { border-color: var(--teal); }
+
+    #user-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: var(--gray-900);
+      background: transparent;
+      line-height: 1.5;
+      max-height: 120px;
+      padding: 4px 0;
+    }
+
+    #user-input::placeholder { color: var(--gray-400); }
+
+    #send-btn {
+      width: 36px; height: 36px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--teal);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    #send-btn:hover { background: var(--teal-dark); }
+    #send-btn:active { transform: scale(0.96); }
+    #send-btn:disabled { background: var(--gray-200); cursor: not-allowed; }
+    #send-btn svg { width: 15px; height: 15px; stroke: white; fill: none; }
+
+    .hint { font-size: 11px; color: var(--gray-400); text-align: center; margin-top: 8px; }
+
+    .synthesis-card {
+      margin-top: 4px;
+      border: 1px solid var(--gray-100);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: white;
+    }
+
+    .synthesis-header {
+      background: var(--gray-900);
+      color: white;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .synthesis-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .synthesis-section:last-child { border-bottom: none; }
+
+    .synthesis-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .synthesis-label.ok { color: var(--teal-dark); }
+    .synthesis-label.learn { color: var(--amber); }
+    .synthesis-label.next { color: var(--blue); }
+
+    .synthesis-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .ok .synthesis-dot { background: var(--teal); }
+    .learn .synthesis-dot { background: var(--amber); }
+    .next .synthesis-dot { background: var(--blue); }
+
+    .synthesis-content { font-size: 13px; color: var(--gray-700); line-height: 1.7; }
+
+    #error-banner {
+      display: none;
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+    </svg>
+  </div>
+  <div class="header-text">
+    <h1>L'expérience fait la valeur</h1>
+    <p>Auto-évaluation — Expérience client &amp; utilisateur</p>
+  </div>
+</header>
+
+<main>
+  <div id="error-banner"></div>
+  <div id="messages"></div>
+  <div id="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  <div class="input-wrapper">
+    <div class="input-box">
+      <textarea id="user-input" rows="1" placeholder="Écrivez votre réponse ici…"></textarea>
+      <button id="send-btn" aria-label="Envoyer">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <p class="hint" id="hint-text">Entrée pour envoyer · Maj+Entrée pour aller à la ligne</p>
+  </div>
+</main>
+
+<script>
+const SYSTEM_PROMPT = `Tu es un coach bienveillant et encourageant qui réalise une auto-évaluation conversationnelle sur la culture de l'expérience client et utilisateur, dans le cadre de la formation "L'expérience fait la valeur".
+
+Ton public : des chefs de projet, product managers, responsables métier — pas des designers, mais des gens qui pilotent des produits ou des services.
+
+Ton rôle :
+1. Commencer par une question d'ouverture chaleureuse pour comprendre le contexte de la personne (son métier, son rapport à l'expérience client aujourd'hui).
+2. Poser des questions ouvertes, une à la fois, pour sonder leur niveau de compréhension sur des sujets clés : la notion d'expérience client/utilisateur, la différence entre satisfaction et expérience, l'écoute des utilisateurs, la valeur perçue, les points de contact, la culture centrée sur l'utilisateur dans une organisation.
+3. Adapter tes questions au niveau détecté : si la personne est novice, rester concret et ancré dans le quotidien ; si elle est experte, aller vers des nuances et des cas complexes.
+4. Ne jamais évaluer ou noter dans le fil du chat — rester dans un registre de dialogue curieux et bienveillant.
+5. Après 6 à 10 échanges (selon la richesse des réponses), décider que c'est suffisant et produire une synthèse structurée.
+
+Format de la synthèse finale (utilise exactement ces balises) :
+<synthesis>
+<understood>Liste des concepts bien compris, avec une phrase encourageante</understood>
+<tolearn>Liste des concepts à approfondir, formulés comme des opportunités de découverte</tolearn>
+<next>2-3 phrases sur ce que la formation va apporter à cette personne spécifiquement, en lien avec ce que tu as appris d'elle</next>
+</synthesis>
+
+Langue : français. Ton : chaleureux, curieux, jamais condescendant. Longueur de tes messages : concis (3-5 phrases max hors synthèse).`;
+
+let history = [];
+let isLoading = false;
+let synthesisDone = false;
+
+const messagesEl = document.getElementById('messages');
+const typingEl = document.getElementById('typing');
+const inputEl = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const errorBanner = document.getElementById('error-banner');
+const hintText = document.getElementById('hint-text');
+
+function showError(msg) {
+  errorBanner.textContent = msg;
+  errorBanner.style.display = 'block';
+  setTimeout(() => { errorBanner.style.display = 'none'; }, 7000);
+}
+
+function addMessage(role, content) {
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + (role === 'assistant' ? 'ai' : 'user');
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'assistant' ? 'Coach IA' : 'Vous';
+  msg.appendChild(label);
+
+  if (role === 'assistant' && content.includes('<synthesis>')) {
+    const before = content.split('<synthesis>')[0].trim();
+    if (before) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = before;
+      msg.appendChild(bubble);
+    }
+    msg.appendChild(buildSynthesisCard(parseSynthesis(content)));
+    synthesisDone = true;
+    inputEl.disabled = true;
+    sendBtn.disabled = true;
+    inputEl.placeholder = 'Évaluation terminée';
+    hintText.textContent = 'Votre bilan est prêt. Bonne formation !';
+  } else {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = content;
+    msg.appendChild(bubble);
+  }
+
+  messagesEl.appendChild(msg);
+  msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+function parseSynthesis(text) {
+  const get = (tag) => {
+    const m = text.match(new RegExp('<' + tag + '>([\\s\\S]*?)<\\/' + tag + '>'));
+    return m ? m[1].trim() : '';
+  };
+  return { understood: get('understood'), tolearn: get('tolearn'), next: get('next') };
+}
+
+function buildSynthesisCard(s) {
+  const card = document.createElement('div');
+  card.className = 'synthesis-card';
+  const header = document.createElement('div');
+  header.className = 'synthesis-header';
+  header.textContent = 'Votre bilan personnalisé';
+  card.appendChild(header);
+  [
+    { cls: 'ok', label: 'Ce que vous maîtrisez', content: s.understood },
+    { cls: 'learn', label: 'Ce que la formation va vous apporter', content: s.tolearn },
+    { cls: 'next', label: 'Pourquoi cette formation est faite pour vous', content: s.next }
+  ].forEach(({ cls, label, content }) => {
+    if (!content) return;
+    const sec = document.createElement('div');
+    sec.className = 'synthesis-section';
+    sec.innerHTML = '<div class="synthesis-label ' + cls + '"><span class="synthesis-dot"></span>' + label + '</div><div class="synthesis-content">' + content.replace(/\n/g, '<br>') + '</div>';
+    card.appendChild(sec);
+  });
+  return card;
+}
+
+function showTyping(show) {
+  typingEl.style.display = show ? 'flex' : 'none';
+  if (show) typingEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+}
+
+async function callClaude(messages) {
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: SYSTEM_PROMPT,
+      messages: messages
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Erreur ' + res.status);
+  }
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+async function sendMessage(userText) {
+  if (isLoading || synthesisDone) return;
+  isLoading = true;
+  sendBtn.disabled = true;
+
+  const initMsg = { role: 'user', content: 'Bonjour, je suis prêt pour l\'évaluation.' };
+
+  if (userText) {
+    history.push({ role: 'user', content: userText });
+    addMessage('user', userText);
+  }
+
+  showTyping(true);
+  try {
+    const msgs = history.length === 0 ? [initMsg] : history;
+    const reply = await callClaude(msgs);
+    showTyping(false);
+    if (history.length === 0) history.push(initMsg);
+    history.push({ role: 'assistant', content: reply });
+    addMessage('assistant', reply);
+  } catch (e) {
+    showTyping(false);
+    showError('Erreur de connexion : ' + e.message);
+  }
+
+  isLoading = false;
+  if (!synthesisDone) { sendBtn.disabled = false; inputEl.focus(); }
+}
+
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    const text = inputEl.value.trim();
+    if (text) { inputEl.value = ''; inputEl.style.height = 'auto'; sendMessage(text); }
+  }
+});
+
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+});
+
+sendBtn.addEventListener('click', () => {
+  const text = inputEl.value.trim();
+  if (text) { inputEl.value = ''; inputEl.style.height = 'auto'; sendMessage(text); }
+});
+
+sendMessage('');
+</script>
+</body>
+</html>
