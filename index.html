@@ -11,9 +11,9 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --teal: #1D9E75;
-      --teal-dark: #0F6E56;
-      --teal-light: #E1F5EE;
+      --teal: #F16E00;
+      --teal-dark: #C55A00;
+      --teal-light: #FEF0E6;
       --amber: #BA7517;
       --blue: #185FA5;
       --gray-50: #F7F7F5;
@@ -326,7 +326,7 @@ Format de la synthèse finale (utilise exactement ces balises) :
 <next>2-3 phrases sur ce que la formation va apporter à cette personne spécifiquement, en lien avec ce que tu as appris d'elle</next>
 </synthesis>
 
-Langue : français. Ton : chaleureux, curieux, jamais condescendant. Longueur de tes messages : concis (3-5 phrases max hors synthèse).`;
+Langue : français. Ton : chaleureux, curieux, jamais condescendant. Longueur de tes messages : concis (3-5 phrases max hors synthèse). Important : quand tu fais un bref commentaire sur la réponse précédente avant de poser la question suivante, sépare-les par une ligne vide (\n\n). N'utilise jamais le caractère astérisque (*) dans tes réponses.`;
 
 let history = [];
 let isLoading = false;
@@ -370,7 +370,11 @@ function addMessage(role, content) {
   } else {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    bubble.textContent = content;
+    // Afficher les sauts de ligne (ligne vide entre feedback et question)
+    bubble.innerHTML = content
+      .split('\n')
+      .map(l => l.trim() === '' ? '<br>' : '<span>' + l.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>')
+      .join('<br>');
     msg.appendChild(bubble);
   }
 
@@ -428,7 +432,10 @@ async function callClaude(messages) {
     throw new Error(err.error?.message || 'Erreur ' + res.status);
   }
   const data = await res.json();
-  return data.content[0].text;
+  const raw = data.content[0].text;
+  // Supprimer les astérisques markdown
+  const clean = raw.replace(/[*]+([^*]+)[*]+/g, '$1').replace(/[*]/g, '');
+  return clean;
 }
 
 async function sendMessage(userText) {
