@@ -401,8 +401,9 @@ function addMessage(role, content) {
   } else {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    // Afficher les sauts de ligne (ligne vide entre feedback et question)
+    // Une ligne vide = un seul saut de ligne visible
     bubble.innerHTML = content
+      .replace(/\n\n/g, '\n')
       .split('\n')
       .map(l => l.trim() === '' ? '<br>' : '<span>' + l.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>')
       .join('<br>');
@@ -410,7 +411,10 @@ function addMessage(role, content) {
   }
 
   messagesEl.appendChild(msg);
-  msg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  // Scroll pour que le nouveau message soit bien visible en haut de la zone
+  setTimeout(() => {
+    msg.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
 }
 
 function parseSynthesis(text) {
@@ -444,7 +448,7 @@ function buildSynthesisCard(s) {
 
 function showTyping(show) {
   typingEl.style.display = show ? 'flex' : 'none';
-  if (show) typingEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  if (show) setTimeout(() => typingEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
 async function callClaude(messages) {
